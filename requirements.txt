@@ -86,7 +86,7 @@ json5 @ file:///home/conda/feedstock_root/build_artifacts/json5_1731365966646/wo
 jsonpointer @ file:///D:/bld/jsonpointer_1725302960531/work
 jsonschema @ file:///home/conda/feedstock_root/build_artifacts/jsonschema_1720529478715/work
 jsonschema-specifications @ file:///tmp/tmpvslgxhz5/src
-jupyter-events @ file:///home/conda/feedstock_root/build_artifacts/jupyter_events_1710805637316/work
+
 jupyter-lsp @ file:///home/conda/feedstock_root/build_artifacts/jupyter-lsp-meta_1712707420468/work/jupyter-lsp
 jupyter_client @ file:///home/conda/feedstock_root/build_artifacts/jupyter_client_1726610684920/work
 jupyter_core @ file:///D:/bld/jupyter_core_1710257313664/work
@@ -110,7 +110,7 @@ more-itertools @ file:///home/conda/feedstock_root/build_artifacts/more-itertool
 multidict @ file:///D:/bld/multidict_1729065636540/work
 multimethod @ file:///home/conda/feedstock_root/build_artifacts/multimethod_1720447581385/work
 munkres==1.1.4
-mypy-extensions @ file:///home/conda/feedstock_root/build_artifacts/mypy_extensions_1675543315189/work
+
 nbclient @ file:///home/conda/feedstock_root/build_artifacts/nbclient_1710317608672/work
 nbconvert @ file:///home/conda/feedstock_root/build_artifacts/nbconvert-meta_1718135430380/work
 nbformat @ file:///home/conda/feedstock_root/build_artifacts/nbformat_1712238998817/work
