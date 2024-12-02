@@ -1,39 +1,61 @@
 
-# Logistic Regression Model on Rain in Australia Dataset
+# Logistic Regression Model for Rain Prediction
 
-## Summary
-This project involves building a logistic regression model to predict whether it will rain tomorrow in Australia using the "RainTomorrow" dataset. The key steps include data preprocessing, feature encoding, model training, and evaluation.
+This project focuses on building and evaluating a logistic regression model to predict the likelihood of rain in Australia for the next day.
 
-## Steps Performed
-1. **Data Cleaning**:
-   - Removed columns with excessive missing values.
-   - Dropped duplicates in columns.
-   - Target variable `RainTomorrow` was preprocessed.
+## Dataset
+The dataset used is the **Rain in Australia** dataset, which includes various meteorological features to predict rainfall:
+- Numerical features such as temperature, humidity, wind speed, etc.
+- Categorical features like wind direction, location, etc.
 
-2. **Feature Engineering**:
-   - Split numerical and categorical features.
-   - Handled missing values using `SimpleImputer`.
-   - Encoded categorical features using `OneHotEncoder` with `drop='first'`.
+## Preprocessing Steps
+1. **Missing Value Handling**:
+   - Numerical features: Imputed using the mean.
+   - Categorical features: Converted to appropriate string types and encoded.
 
-3. **Model Training**:
-   - Logistic regression model was trained using multiple solvers (`liblinear`, `lbfgs`, `newton-cg`).
-   - The best solver achieved an accuracy of **85.09%**.
+2. **Feature Scaling**:
+   - Numerical features were normalized using `StandardScaler`.
 
-4. **Evaluation**:
-   - Classification metrics and ROC-AUC were calculated.
-   - AUC score of **0.87** indicates strong predictive performance.
+3. **Feature Encoding**:
+   - Categorical features were one-hot encoded using `OneHotEncoder`.
 
-## Results
-- **Accuracy**: 85.09%
-- **AUC**: 0.87
+4. **Class Balancing**:
+   - Logistic regression was trained with `class_weight='balanced'` to address the class imbalance in the dataset.
 
-## Recommendations
-- Analyze feature importance to understand key predictors.
+## Model Evaluation
+1. **Metrics**:
+   - Precision, Recall, F1-score, and Accuracy were calculated.
+   - The model achieved:
+     - Accuracy: **85%** (without class balancing).
+     - Improved Recall for the minority class with class balancing.
+
+2. **ROC Curve**:
+   - The ROC-AUC score of **0.84** demonstrates good discrimination capability.
+
+## Key Observations
+1. Balancing the dataset improved the Recall for the minority class but slightly reduced overall precision.
+2. AUC of 0.85 indicates the model is effective at classifying rain predictions.
+
+## Future Work
 - Experiment with other models (e.g., Random Forest, Gradient Boosting).
-- Perform cross-validation for stability checks.
+- Optimize the classification threshold based on the ROC curve.
+- Perform hyperparameter tuning for further improvement.
 
-## Visualizations
-- **ROC Curve**: Included in the analysis with AUC score.
+## Requirements
+- Python 3.8+
+- Libraries:
+  - `pandas`
+  - `numpy`
+  - `sklearn`
+  - `matplotlib`
 
-## Instructions
-- Clone the repository and run the provided Jupyter Notebook for detailed insights.
+## How to Run
+1. Clone the repository.
+2. Install the required libraries.
+3. Run the notebook/script for preprocessing and training the model.
+
+## Contributions
+Feel free to fork the repository and contribute by adding more advanced models or improving preprocessing techniques.
+
+## License
+This project is open-source and available under the MIT License.
