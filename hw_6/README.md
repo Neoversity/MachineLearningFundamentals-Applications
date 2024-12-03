@@ -30,11 +30,11 @@ The dataset used is the **Rain in Australia** dataset, which includes various me
      - Improved Recall for the minority class with class balancing.
 
 2. **ROC Curve**:
-   - The ROC-AUC score of **0.84** demonstrates good discrimination capability.
+   - The ROC-AUC score of **0.86** demonstrates good discrimination capability.
 
 ## Key Observations
 1. Balancing the dataset improved the Recall for the minority class but slightly reduced overall precision.
-2. AUC of 0.85 indicates the model is effective at classifying rain predictions.
+2. AUC of 0.86 indicates the model is effective at classifying rain predictions.
 
 ## Future Work
 - Experiment with other models (e.g., Random Forest, Gradient Boosting).
