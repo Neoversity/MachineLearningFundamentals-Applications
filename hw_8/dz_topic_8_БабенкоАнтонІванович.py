@@ -36,6 +36,7 @@ train_data.head(), valid_data.head()
 # Перевіримо наявність пропусків у тренувальному та валідаційному наборах даних
 missing_train = train_data.isnull().sum()
 missing_valid = valid_data.isnull().sum()
+
 #%%
 missing_data_analysis = pd.DataFrame({
     "Train Missing Before": missing_train,
@@ -83,134 +84,138 @@ missing_train_final = train_data.isnull().sum()
 missing_train_final
 #%%
 # Крок 4: Масштабування числових ознак
+
+# Категоризація змінної 'Experience'
+def categorize_experience(years):
+    if years < 3:
+        return 'Junior'
+    elif 3 <= years <= 7:
+        return 'Mid'
+    else:
+        return 'Senior'
+
+# Додаємо категорію до тренувального та валідаційного наборів
+train_data['Experience_Category'] = train_data['Experience'].apply(categorize_experience)
+valid_data['Experience_Category'] = valid_data['Experience'].apply(categorize_experience)
+
+# Видаляємо числову ознаку 'Experience'
+train_data.drop(columns=['Experience'], inplace=True)
+valid_data.drop(columns=['Experience'], inplace=True)
+
+# Масштабування лише числових змінних
+numerical_features = ['Age']  # Лише 'Age', оскільки 'Experience' тепер є категоріальною
+
 # Ініціалізація трансформерів
 scaler_standard = StandardScaler()
 scaler_power = PowerTransformer()
 
-# Вибір числових змінних для трансформації
-numerical_features = ['Experience', 'Age']
-
-# Масштабування за допомогою StandardScaler
+# Копіюємо дані для масштабування
 train_data_standard = train_data.copy()
 valid_data_standard = valid_data.copy()
 
+train_data_power = train_data.copy()
+valid_data_power = valid_data.copy()
+
+# Масштабування за допомогою StandardScaler
 train_data_standard[numerical_features] = scaler_standard.fit_transform(train_data[numerical_features])
 valid_data_standard[numerical_features] = scaler_standard.transform(valid_data[numerical_features])
 
 # Масштабування за допомогою PowerTransformer
-train_data_power = train_data.copy()
-valid_data_power = valid_data.copy()
-
 train_data_power[numerical_features] = scaler_power.fit_transform(train_data[numerical_features])
 valid_data_power[numerical_features] = scaler_power.transform(valid_data[numerical_features])
 
-# Перевіримо результати трансформацій
+# Перевіримо результати
 train_data_standard.head(), train_data_power.head()
 #%%
-# Ініціалізація OneHotEncoder для кодування категоріальних змінних
-encoder = OneHotEncoder(sparse_output=False, drop='first')  # Drop='first' для уникнення мультиколінеарності
-categorical_features = ['Qualification', 'University', 'Role', 'Cert']
+# Ініціалізація TargetEncoder
+encoder = TargetEncoder()
 
-# Кодування для StandardScaler трансформованих даних
-encoded_train_standard = encoder.fit_transform(train_data_standard[categorical_features])
-encoded_train_standard_df = pd.DataFrame(
-    encoded_train_standard, 
-    columns=encoder.get_feature_names_out(categorical_features)
-)
-train_data_standard_encoded = pd.concat(
-    [train_data_standard.drop(columns=categorical_features), encoded_train_standard_df], axis=1
-)
+# Визначення категоріальних і числових змінних
+categorical_features = ['Qualification', 'University', 'Role', 'Cert', 'Experience_Category']
+numerical_features = ['Age']
 
-encoded_valid_standard = encoder.transform(valid_data_standard[categorical_features])
-encoded_valid_standard_df = pd.DataFrame(
-    encoded_valid_standard, 
-    columns=encoder.get_feature_names_out(categorical_features)
-)
-valid_data_standard_encoded = pd.concat(
-    [valid_data_standard.drop(columns=categorical_features), encoded_valid_standard_df], axis=1
-)
+# Копіюємо дані для масштабування
+train_data_encoded = train_data.copy()
+valid_data_encoded = valid_data.copy()
 
-# Кодування для PowerTransformer трансформованих даних
-encoded_train_power = encoder.fit_transform(train_data_power[categorical_features])
-encoded_train_power_df = pd.DataFrame(
-    encoded_train_power, 
-    columns=encoder.get_feature_names_out(categorical_features)
-)
-train_data_power_encoded = pd.concat(
-    [train_data_power.drop(columns=categorical_features), encoded_train_power_df], axis=1
-)
+# Кодуємо категоріальні змінні TargetEncoding
+for col in categorical_features:
+    train_data_encoded[col] = encoder.fit_transform(train_data[col], train_data['Salary'])
+    valid_data_encoded[col] = encoder.transform(valid_data[col])
 
-encoded_valid_power = encoder.transform(valid_data_power[categorical_features])
-encoded_valid_power_df = pd.DataFrame(
-    encoded_valid_power, 
-    columns=encoder.get_feature_names_out(categorical_features)
-)
-valid_data_power_encoded = pd.concat(
-    [valid_data_power.drop(columns=categorical_features), encoded_valid_power_df], axis=1
-)
+# Об'єднуємо числові та закодовані ознаки
+all_features = numerical_features + categorical_features
 
-# Перевіримо, як виглядають дані після кодування
-train_data_standard_encoded.head(), train_data_power_encoded.head()
+# Масштабування всіх ознак
+scaler_standard = StandardScaler()
+scaler_power = PowerTransformer()
 #%%
-# Крок 5: Побудова моделі за допомогою KNeighborsRegressor
+# Масштабування для StandardScaler
+train_data_standard = train_data_encoded.copy()
+valid_data_standard = valid_data_encoded.copy()
 
+train_data_standard[all_features] = scaler_standard.fit_transform(train_data_encoded[all_features])
+valid_data_standard[all_features] = scaler_standard.transform(valid_data_encoded[all_features])
 
-# Розділення даних на ознаки (features) та цільову змінну (target)
-X_train_standard = train_data_standard_encoded.drop(columns=['Salary'])
-y_train_standard = train_data_standard_encoded['Salary']
+# Масштабування для PowerTransformer
+train_data_power = train_data_encoded.copy()
+valid_data_power = valid_data_encoded.copy()
 
-X_valid_standard = valid_data_standard_encoded.drop(columns=['Salary'])
-y_valid_standard = valid_data_standard_encoded['Salary']
-
-# Побудова моделі KNeighborsRegressor для StandardScaler даних
-knn_model_standard = KNeighborsRegressor(n_neighbors=5)
-knn_model_standard.fit(X_train_standard, y_train_standard)
-
-# Прогноз для валідаційного набору
-y_pred_standard = knn_model_standard.predict(X_valid_standard)
+train_data_power[all_features] = scaler_power.fit_transform(train_data_encoded[all_features])
+valid_data_power[all_features] = scaler_power.transform(valid_data_encoded[all_features])
 #%%
-# Крок 6: Оцінка точності моделі (MAPE)
+# Розділення даних
+X_train_standard = train_data_standard.drop(columns=['Salary'])
+y_train_standard = train_data_standard['Salary']
+
+X_valid_standard = valid_data_standard.drop(columns=['Salary'])
+y_valid_standard = valid_data_standard['Salary']
+
+X_train_power = train_data_power.drop(columns=['Salary'])
+y_train_power = train_data_power['Salary']
+
+X_valid_power = valid_data_power.drop(columns=['Salary'])
+y_valid_power = valid_data_power['Salary']
+#%%
+# Оптимізація n_neighbors для KNeighborsRegressor
+from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_absolute_percentage_error
-# Обчислення MAPE
-mape_standard = mean_absolute_percentage_error(y_valid_standard, y_pred_standard)
 
-# Аналогічно для PowerTransformer
-X_train_power = train_data_power_encoded.drop(columns=['Salary'])
-y_train_power = train_data_power_encoded['Salary']
 
-X_valid_power = valid_data_power_encoded.drop(columns=['Salary'])
-y_valid_power = valid_data_power_encoded['Salary']
+knn = KNeighborsRegressor()
+param_grid = {'n_neighbors': range(1, 50)}
+grid_search = GridSearchCV(estimator=knn, param_grid=param_grid, scoring='neg_mean_absolute_percentage_error', cv=5, n_jobs=-1)
 
-knn_model_power = KNeighborsRegressor(n_neighbors=5)
-knn_model_power.fit(X_train_power, y_train_power)
+X_train = train_data_standard.drop(columns=['Salary'])
+y_train = train_data_standard['Salary']
 
-y_pred_power = knn_model_power.predict(X_valid_power)
-mape_power = mean_absolute_percentage_error(y_valid_power, y_pred_power)
+grid_search.fit(X_train, y_train)
 
-# Виведемо результати
-print(f"Validation MAPE (StandardScaler): {mape_standard:.2%}")
-print(f"Validation MAPE (PowerTransformer): {mape_power:.2%}")
+best_n_neighbors = grid_search.best_params_['n_neighbors']
+best_score = -grid_search.best_score_
+
+print(f"Найкраще значення n_neighbors: {best_n_neighbors}")
+print(f"MAPE для найкращого значення n_neighbors: {best_score:.2%}")
+
+# Крок 5: Навчання моделі з оптимальним n_neighbors
+best_knn_model = KNeighborsRegressor(n_neighbors=best_n_neighbors)
+best_knn_model.fit(X_train, y_train)
+
+# Підготовка валідаційного набору
+X_valid = valid_data_standard.drop(columns=['Salary'])
+y_valid = valid_data_standard['Salary']
+
+# Продовження виконання моделі
+y_pred = best_knn_model.predict(X_valid)
+final_mape = mean_absolute_percentage_error(y_valid, y_pred)
+final_mse = mean_squared_error(y_valid, y_pred)
+final_r2 = r2_score(y_valid, y_pred)
+
+print(f"Validation Results with Optimized n_neighbors:")
+print(f" - Validation MAPE: {final_mape:.2%}")
+print(f" - Validation MSE: {final_mse:.2f}")
+print(f" - Validation R2: {final_r2:.2f}")
+
 #%%
-# Крок 7: Розрахунок додаткових метрик точності (MSE, R2)
-# Розрахуємо метрики точності регресійної моделі для StandardScaler
-
-# Mean Squared Error (MSE) для StandardScaler
-mse_standard = mean_squared_error(y_valid_standard, y_pred_standard)
-
-# R-squared (R2) для StandardScaler
-r2_standard = r2_score(y_valid_standard, y_pred_standard)
-
-# Розрахуємо метрики для PowerTransformer
-mse_power = mean_squared_error(y_valid_power, y_pred_power)
-r2_power = r2_score(y_valid_power, y_pred_power)
-
-# Виведемо результати
-print(f"StandardScaler Results:")
-print(f" - Validation MAPE: {mape_standard:.2%}")
-print(f" - Validation MSE: {mse_standard:.2f}")
-print(f" - Validation R2: {r2_standard:.2f}")
-
-print(f"\nPowerTransformer Results:")
-print(f" - Validation MAPE: {mape_power:.2%}")
-print(f" - Validation MSE: {mse_power:.2f}")
-print(f" - Validation R2: {r2_power:.2f}")
+print(X_train.isnull().sum())
+print(y_train.isnull().sum())
